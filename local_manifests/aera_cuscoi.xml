@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest>
     <!-- Motorola Edge 50 Fusion (cuscoi) Device Tree for AERA Recovery -->
-    <project path="device/motorola/cuscoi" name="android_device_motorola_cuscoi" remote="github" revision="main" />
+    <project path="device/motorola/cuscoi" name="Programivan/android_device_motorola_cuscoi-AERA" remote="github" revision="main" />
 </manifest>
