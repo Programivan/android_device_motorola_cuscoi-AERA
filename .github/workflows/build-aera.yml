@@ -50,12 +50,15 @@ jobs:
 
           git config --global user.name "AERA Builder"
           git config --global user.email "builder@aera-recovery.org"
+          git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
 
       - name: Initialize AERA Recovery Manifest
         run: |
           mkdir -p ~/aera_recovery
           cd ~/aera_recovery
           repo init -u https://github.com/AERA-Recovery/android_manifest.git -b aera-16.0 --depth=1
+          sed -i 's|ssh://git@github.com/|https://github.com/|g' .repo/manifests/*.xml 2>/dev/null || true
           repo sync -c --force-sync --no-clone-bundle --no-tags -j$(nproc)
 
       - name: Integrate Cuscoi Device Tree
@@ -66,8 +69,9 @@ jobs:
       - name: Build AERA Recovery
         run: |
           cd ~/aera_recovery
+          export ALLOW_MISSING_DEPENDENCIES=true
           source build/envsetup.sh
-          lunch twrp_cuscoi-eng
+          lunch twrp_cuscoi-eng || lunch aera_cuscoi-eng
           mka ${{ inputs.build_target }} -j$(nproc)
 
       - name: Package Output Artifacts
