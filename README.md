@@ -28,9 +28,8 @@
 
 ```text
 ├── aera_cuscoi.mk              # Головний конфіг AERA: екран, відступи, анімація, бекапи, fs-інструменти
-├── aera_cuscoi_product.mk      # Аліас продукту aera_cuscoi для lunch
 ├── twrp_cuscoi.mk              # Базовий Product Makefile для збірки
-├── AndroidProducts.mk          # Точки входу lunch (twrp_cuscoi-eng, aera_cuscoi-eng)
+├── AndroidProducts.mk          # Точки входу lunch (twrp_cuscoi-eng)
 ├── BoardConfig.mk              # Налаштування плати, ядра, розділів, AVB та шифрування
 ├── device.mk                   # Підключення HAL, бібліотек дешифрування, bootctrl, сервісів
 ├── vendorsetup.sh              # Скрипт оточення AERA (змінні, бінарники tar/sed/lz4/zstd/erofs)
@@ -104,8 +103,6 @@ source build/envsetup.sh
 
 # Виберіть ціль для Motorola Edge 50 Fusion (Android 16 bp2a):
 lunch twrp_cuscoi-bp2a-eng
-# або:
-# lunch aera_cuscoi-bp2a-eng
 
 # Компіляція образу рекавері:
 mka adbd recoveryimage -j$(nproc --all)

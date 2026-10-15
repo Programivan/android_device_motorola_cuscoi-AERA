@@ -1,6 +1,12 @@
 name: Build AERA Recovery for Motorola Edge 50 Fusion (cuscoi)
 
 on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'README.md'
+      - '.gitignore'
   workflow_dispatch:
     inputs:
       build_target:
@@ -85,8 +91,8 @@ jobs:
           cd $GITHUB_WORKSPACE/aera_recovery
           export ALLOW_MISSING_DEPENDENCIES=true
           source build/envsetup.sh
-          lunch twrp_cuscoi-bp2a-eng || lunch twrp_cuscoi bp2a eng || lunch aera_cuscoi-bp2a-eng
-          mka adbd ${{ inputs.build_target }} -j$(nproc)
+          lunch twrp_cuscoi-bp2a-eng
+          mka adbd ${{ inputs.build_target || 'recoveryimage' }} -j$(nproc) || m adbd ${{ inputs.build_target || 'recoveryimage' }} -j$(nproc)
 
       - name: Package Output Artifacts
         run: |
