@@ -11,8 +11,6 @@ DEVICE_PATH := device/motorola/cuscoi
 PRODUCT_SOONG_NAMESPACES += \
     $(LOCAL_PATH)
 
-# Enable virtual A/B OTA
-$(call inherit-product, $(SRC_TARGET_DIR)/product/virtual_ab_ota/launch_with_vendor_ramdisk.mk)
 
 # Copy recovery/root/ from the device directory
 PRODUCT_COPY_FILES += \
