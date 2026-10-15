@@ -1,0 +1,12 @@
+//
+// Copyright (C) 2024-2026 The AERA Recovery Project
+// Copyright (C) 2023 TeamWin Recovery Project
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+
+soong_namespace {
+    imports: [
+        "hardware/qcom-caf/bootctrl",
+    ],
+}

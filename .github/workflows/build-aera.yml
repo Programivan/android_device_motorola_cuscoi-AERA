@@ -1,0 +1,84 @@
+name: Build AERA Recovery for Motorola Edge 50 Fusion (cuscoi)
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_target:
+        description: 'Build Target'
+        required: true
+        default: 'recoveryimage'
+        type: choice
+        options:
+          - 'recoveryimage'
+          - 'bootimage'
+
+jobs:
+  build:
+    name: Build AERA Recovery
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Maximize Build Disk Space
+        uses: easimon/maximize-build-space@v10
+        with:
+          root-reserve-mb: 40960
+          temp-reserve-mb: 10240
+          remove-dotnet: 'true'
+          remove-android: 'true'
+          remove-haskell: 'true'
+          remove-codeql: 'true'
+          remove-docker-images: 'true'
+
+      - name: Checkout Cuscoi Device Tree
+        uses: actions/checkout@v4
+        with:
+          path: device/motorola/cuscoi
+
+      - name: Set up Build Environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            gperf gcc-multilib gcc-10-multilib g++-multilib g++-10-multilib \
+            libc6-dev lib32ncurses5-dev x11proto-core-dev libx11-dev \
+            lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc fontconfig \
+            libncurses5 python3 rsync curl git lz4 zstd ccache
+
+          # Install repo tool
+          mkdir -p ~/.bin
+          curl https://storage.googleapis.com/git-repo-downloads/repo > ~/.bin/repo
+          chmod a+x ~/.bin/repo
+          echo "$HOME/.bin" >> $GITHUB_PATH
+
+          git config --global user.name "AERA Builder"
+          git config --global user.email "builder@aera-recovery.org"
+
+      - name: Initialize AERA Recovery Manifest
+        run: |
+          mkdir -p ~/aera_recovery
+          cd ~/aera_recovery
+          repo init -u https://github.com/AERA-Recovery/android_manifest.git -b aera-16.0 --depth=1
+          repo sync -c --force-sync --no-clone-bundle --no-tags -j$(nproc)
+
+      - name: Integrate Cuscoi Device Tree
+        run: |
+          mkdir -p ~/aera_recovery/device/motorola/
+          cp -r $GITHUB_WORKSPACE/device/motorola/cuscoi ~/aera_recovery/device/motorola/
+
+      - name: Build AERA Recovery
+        run: |
+          cd ~/aera_recovery
+          source build/envsetup.sh
+          lunch twrp_cuscoi-eng
+          mka ${{ inputs.build_target }} -j$(nproc)
+
+      - name: Package Output Artifacts
+        run: |
+          cd ~/aera_recovery/out/target/product/cuscoi
+          mkdir -p $GITHUB_WORKSPACE/output
+          cp -f recovery.img $GITHUB_WORKSPACE/output/AERA-R1.0-cuscoi-recovery.img 2>/dev/null || true
+          cp -f boot.img $GITHUB_WORKSPACE/output/AERA-R1.0-cuscoi-boot.img 2>/dev/null || true
+
+      - name: Upload Recovery Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: AERA-Recovery-cuscoi
+          path: output/*
