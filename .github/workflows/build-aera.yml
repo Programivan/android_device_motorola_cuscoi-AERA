@@ -17,21 +17,29 @@ jobs:
     name: Build AERA Recovery
     runs-on: ubuntu-22.04
     steps:
-      - name: Maximize Build Disk Space
-        uses: easimon/maximize-build-space@v10
-        with:
-          root-reserve-mb: 40960
-          temp-reserve-mb: 10240
-          remove-dotnet: 'true'
-          remove-android: 'true'
-          remove-haskell: 'true'
-          remove-codeql: 'true'
-          remove-docker-images: 'true'
+      - name: Clean and Maximize Free Disk Space
+        run: |
+          echo "=== Disk space before cleanup ==="
+          df -h
+
+          # Remove heavy pre-installed toolchains and SDKs not needed for recovery
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf /usr/share/swift
+          sudo rm -rf /var/lib/docker
+          sudo docker image prune --all --force || true
+          sudo apt-get clean || true
+
+          echo "=== Disk space after cleanup ==="
+          df -h
 
       - name: Checkout Cuscoi Device Tree
         uses: actions/checkout@v4
         with:
-          path: device/motorola/cuscoi
+          path: cuscoi_tree
 
       - name: Set up Build Environment
         run: |
@@ -40,7 +48,7 @@ jobs:
             gperf gcc-multilib gcc-10-multilib g++-multilib g++-10-multilib \
             libc6-dev lib32ncurses5-dev x11proto-core-dev libx11-dev \
             lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc fontconfig \
-            libncurses5 python3 rsync curl git lz4 zstd ccache
+            libncurses5 python3 rsync curl git lz4 zstd ccache bc libssl-dev
 
           # Install repo tool
           mkdir -p ~/.bin
@@ -53,22 +61,28 @@ jobs:
           git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
           git config --global url."https://github.com/".insteadOf "git@github.com:"
 
-      - name: Initialize AERA Recovery Manifest
+      - name: Initialize and Sync AERA Recovery
         run: |
-          mkdir -p ~/aera_recovery
-          cd ~/aera_recovery
+          mkdir -p $GITHUB_WORKSPACE/aera_recovery
+          cd $GITHUB_WORKSPACE/aera_recovery
+
           repo init -u https://github.com/AERA-Recovery/android_manifest.git -b aera-16.0 --depth=1
           sed -i 's|ssh://git@github.com/|https://github.com/|g' .repo/manifests/*.xml 2>/dev/null || true
-          repo sync -c --force-sync --no-clone-bundle --no-tags -j$(nproc)
+          repo sync -c --force-sync --no-clone-bundle --no-tags --optimized-fetch --prune -j$(nproc)
+
+          # Delete .repo directory to reclaim ~20 GB of disk space before compilation
+          rm -rf .repo
+          echo "=== Disk space after sync and .repo removal ==="
+          df -h
 
       - name: Integrate Cuscoi Device Tree
         run: |
-          mkdir -p ~/aera_recovery/device/motorola/
-          cp -r $GITHUB_WORKSPACE/device/motorola/cuscoi ~/aera_recovery/device/motorola/
+          mkdir -p $GITHUB_WORKSPACE/aera_recovery/device/motorola/cuscoi
+          cp -r $GITHUB_WORKSPACE/cuscoi_tree/* $GITHUB_WORKSPACE/aera_recovery/device/motorola/cuscoi/
 
       - name: Build AERA Recovery
         run: |
-          cd ~/aera_recovery
+          cd $GITHUB_WORKSPACE/aera_recovery
           export ALLOW_MISSING_DEPENDENCIES=true
           source build/envsetup.sh
           lunch twrp_cuscoi-eng || lunch aera_cuscoi-eng
@@ -76,7 +90,7 @@ jobs:
 
       - name: Package Output Artifacts
         run: |
-          cd ~/aera_recovery/out/target/product/cuscoi
+          cd $GITHUB_WORKSPACE/aera_recovery/out/target/product/cuscoi
           mkdir -p $GITHUB_WORKSPACE/output
           cp -f recovery.img $GITHUB_WORKSPACE/output/AERA-R1.0-cuscoi-recovery.img 2>/dev/null || true
           cp -f boot.img $GITHUB_WORKSPACE/output/AERA-R1.0-cuscoi-boot.img 2>/dev/null || true
