@@ -85,8 +85,8 @@ jobs:
           cd $GITHUB_WORKSPACE/aera_recovery
           export ALLOW_MISSING_DEPENDENCIES=true
           source build/envsetup.sh
-          lunch twrp_cuscoi-eng || lunch aera_cuscoi-eng
-          mka ${{ inputs.build_target }} -j$(nproc)
+          lunch twrp_cuscoi-bp2a-eng || lunch twrp_cuscoi bp2a eng || lunch aera_cuscoi-bp2a-eng
+          mka adbd ${{ inputs.build_target }} -j$(nproc)
 
       - name: Package Output Artifacts
         run: |

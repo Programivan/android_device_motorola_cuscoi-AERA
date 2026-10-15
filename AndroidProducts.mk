@@ -10,9 +10,9 @@ PRODUCT_MAKEFILES := \
     $(LOCAL_DIR)/aera_cuscoi_product.mk
 
 COMMON_LUNCH_CHOICES := \
-    twrp_cuscoi-user \
-    twrp_cuscoi-userdebug \
-    twrp_cuscoi-eng \
-    aera_cuscoi-user \
-    aera_cuscoi-userdebug \
-    aera_cuscoi-eng
+    twrp_cuscoi-bp2a-user \
+    twrp_cuscoi-bp2a-userdebug \
+    twrp_cuscoi-bp2a-eng \
+    aera_cuscoi-bp2a-user \
+    aera_cuscoi-bp2a-userdebug \
+    aera_cuscoi-bp2a-eng

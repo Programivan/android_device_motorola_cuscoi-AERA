@@ -102,10 +102,10 @@ cp -r /path/to/AERA-recovery-cuscoi/* ~/aera_recovery/device/motorola/cuscoi/
 cd ~/aera_recovery
 source build/envsetup.sh
 
-# Виберіть ціль для Motorola Edge 50 Fusion:
-lunch twrp_cuscoi-eng
+# Виберіть ціль для Motorola Edge 50 Fusion (Android 16 bp2a):
+lunch twrp_cuscoi-bp2a-eng
 # або:
-# lunch aera_cuscoi-eng
+# lunch aera_cuscoi-bp2a-eng
 
 # Компіляція образу рекавері:
 mka adbd recoveryimage -j$(nproc --all)
