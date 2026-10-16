@@ -28,10 +28,6 @@ jobs:
           echo "=== Disk space before cleanup ==="
           df -h
 
-          # Stop and disable systemd-oomd to prevent memory-pressure kills
-          sudo systemctl stop systemd-oomd || true
-          sudo systemctl disable systemd-oomd || true
-
           # Remove heavy pre-installed toolchains and SDKs not needed for recovery
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /usr/local/lib/android
@@ -43,11 +39,11 @@ jobs:
           sudo docker image prune --all --force || true
           sudo apt-get clean || true
 
-          # Create 8GB swapfile to handle Soong AST / Ninja generation peak RAM
-          sudo fallocate -l 8G /swapfile || sudo dd if=/dev/zero of=/swapfile bs=1M count=8192
-          sudo chmod 600 /swapfile
-          sudo mkswap /swapfile
-          sudo swapon /swapfile
+          # Create additional 6GB swapfile (adding to runner's default swap -> 10GB total swap)
+          sudo fallocate -l 6G /swapfile_extra || sudo dd if=/dev/zero of=/swapfile_extra bs=1M count=6144
+          sudo chmod 600 /swapfile_extra
+          sudo mkswap /swapfile_extra
+          sudo swapon /swapfile_extra
 
           echo "=== Disk space and memory after setup ==="
           df -h
