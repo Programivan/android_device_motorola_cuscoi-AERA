@@ -39,11 +39,13 @@ jobs:
           sudo docker image prune --all --force || true
           sudo apt-get clean || true
 
-          # Create additional 6GB swapfile (adding to runner's default swap -> 10GB total swap)
-          sudo fallocate -l 6G /swapfile_extra || sudo dd if=/dev/zero of=/swapfile_extra bs=1M count=6144
+          # Create additional 20GB swapfile (providing 7GB RAM + 4GB default swap + 20GB extra swap = 31GB memory)
+          sudo fallocate -l 20G /swapfile_extra || sudo dd if=/dev/zero of=/swapfile_extra bs=1M count=20480
           sudo chmod 600 /swapfile_extra
           sudo mkswap /swapfile_extra
           sudo swapon /swapfile_extra
+          sudo sysctl -w vm.max_map_count=262144 || true
+          sudo sysctl -w vm.swappiness=60 || true
 
           echo "=== Disk space and memory after setup ==="
           df -h
@@ -97,7 +99,6 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/aera_recovery
           export ALLOW_MISSING_DEPENDENCIES=true
-          export GOMEMLIMIT=6GiB
           export MALLOC_ARENA_MAX=2
           source build/envsetup.sh
           lunch twrp_cuscoi-bp2a-eng
