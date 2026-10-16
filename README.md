@@ -31,12 +31,10 @@
 ├── twrp_cuscoi.mk              # Базовий Product Makefile для збірки
 ├── AndroidProducts.mk          # Точки входу lunch (twrp_cuscoi-eng)
 ├── BoardConfig.mk              # Налаштування плати, ядра, розділів, AVB та шифрування
-├── device.mk                   # Підключення HAL, бібліотек дешифрування, bootctrl, сервісів
+├── device.mk                   # Підключення HAL, бібліотек дешифрування, сервісів
 ├── vendorsetup.sh              # Скрипт оточення AERA (змінні, бінарники tar/sed/lz4/zstd/erofs)
 ├── system.prop                 # Системні властивості середовища рекавері
 ├── board-info.txt              # Перевірка сумісності плати при прошивці
-├── bootctrl/                   # Qualcomm Hardware Boot Control HAL 1.2
-├── gpt-utils/                  # Утиліти керування таблицею розділів UFS-BSG
 ├── prebuilt/                   # Попередньо скомпільовані бінарники:
 │   ├── kernel                  # Ядро GKI під платформу parrot
 │   └── dtb.img                 # Device Tree Blob під екран та плату cuscoi
