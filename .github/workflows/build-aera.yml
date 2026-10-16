@@ -28,6 +28,10 @@ jobs:
           echo "=== Disk space before cleanup ==="
           df -h
 
+          # Stop and disable systemd-oomd to prevent memory-pressure kills
+          sudo systemctl stop systemd-oomd || true
+          sudo systemctl disable systemd-oomd || true
+
           # Remove heavy pre-installed toolchains and SDKs not needed for recovery
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /usr/local/lib/android
@@ -39,8 +43,15 @@ jobs:
           sudo docker image prune --all --force || true
           sudo apt-get clean || true
 
-          echo "=== Disk space after cleanup ==="
+          # Create 8GB swapfile to handle Soong AST / Ninja generation peak RAM
+          sudo fallocate -l 8G /swapfile || sudo dd if=/dev/zero of=/swapfile bs=1M count=8192
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+
+          echo "=== Disk space and memory after setup ==="
           df -h
+          free -h
 
       - name: Checkout Cuscoi Device Tree
         uses: actions/checkout@v4
@@ -90,6 +101,8 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/aera_recovery
           export ALLOW_MISSING_DEPENDENCIES=true
+          export GOMEMLIMIT=6GiB
+          export MALLOC_ARENA_MAX=2
           source build/envsetup.sh
           lunch twrp_cuscoi-bp2a-eng
           mka adbd ${{ inputs.build_target || 'recoveryimage' }} -j$(nproc) || m adbd ${{ inputs.build_target || 'recoveryimage' }} -j$(nproc)
